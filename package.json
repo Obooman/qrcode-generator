@@ -1,0 +1,25 @@
+{
+  "name": "qrcode-generator",
+  "version": "1.0.0",
+  "description": "qrcode generator for react native",
+  "main": "qrcode.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Obooman/qrcode-generator.git"
+  },
+  "keywords": [
+    "react",
+    "native",
+    "qrcode",
+    "generator"
+  ],
+  "author": "oboo chin <cheng.12@live.cn> (github.com/obooman)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Obooman/qrcode-generator/issues"
+  },
+  "homepage": "https://github.com/Obooman/qrcode-generator#readme"
+}
