@@ -15,7 +15,7 @@
 //
 //---------------------------------------------------------------------
 
-var qrcode = function() {
+var qrcode = function( utf8Support ) {
 
   //---------------------------------------------------------------------
   // qrcode
@@ -477,7 +477,7 @@ var qrcode = function() {
       return qrSvg;
     };
 
-    _this.createImgTag = function(cellSize, margin) {
+    _this.getBase64Image = function(cellSize, margin) {
 
       cellSize = cellSize || 2;
       margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
@@ -486,7 +486,7 @@ var qrcode = function() {
       var min = margin;
       var max = size - margin;
 
-      return createImgTag(size, size, function(x, y) {
+      return getBase64Image(size, size, function(x, y) {
         if (min <= x && x < max && min <= y && y < max) {
           var c = Math.floor( (x - min) / cellSize);
           var r = Math.floor( (y - min) / cellSize);
@@ -504,14 +504,55 @@ var qrcode = function() {
   // qrcode.stringToBytes
   //---------------------------------------------------------------------
 
-  qrcode.stringToBytes = function(s) {
-    var bytes = new Array();
-    for (var i = 0; i < s.length; i += 1) {
-      var c = s.charCodeAt(i);
-      bytes.push(c & 0xff);
+  qrcode.stringToBytes = utf8Support ?
+  (
+    function(s) {
+      var bytes = new Array();
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        bytes.push(c & 0xff);
+      }
+      return bytes;
     }
-    return bytes;
-  };
+
+  ):(
+
+    // Add support for utf-8 code
+    function(s) {
+      // http://stackoverflow.com/questions/18729405/how-to-convert-utf8-string-to-byte-array
+      function toUTF8Array(str) {
+        var utf8 = [];
+        for (var i=0; i < str.length; i++) {
+          var charcode = str.charCodeAt(i);
+          if (charcode < 0x80) utf8.push(charcode);
+          else if (charcode < 0x800) {
+            utf8.push(0xc0 | (charcode >> 6),
+                0x80 | (charcode & 0x3f));
+          }
+          else if (charcode < 0xd800 || charcode >= 0xe000) {
+            utf8.push(0xe0 | (charcode >> 12),
+                0x80 | ((charcode>>6) & 0x3f),
+                0x80 | (charcode & 0x3f));
+          }
+          // surrogate pair
+          else {
+            i++;
+            // UTF-16 encodes 0x10000-0x10FFFF by
+            // subtracting 0x10000 and splitting the
+            // 20 bits of 0x0-0xFFFFF into two halves
+            charcode = 0x10000 + (((charcode & 0x3ff)<<10)
+              | (str.charCodeAt(i) & 0x3ff));
+            utf8.push(0xf0 | (charcode >>18),
+                0x80 | ((charcode>>12) & 0x3f),
+                0x80 | ((charcode>>6) & 0x3f),
+                0x80 | (charcode & 0x3f));
+          }
+        }
+        return utf8;
+      }
+      return toUTF8Array(s);
+    }
+  );
 
   //---------------------------------------------------------------------
   // qrcode.createStringToBytes
@@ -1799,7 +1840,7 @@ var qrcode = function() {
     return _this;
   };
 
-  var createImgTag = function(width, height, getPixel, alt) {
+  var getBase64Image = function(width, height, getPixel, alt) {
 
     var gif = gifImage(width, height);
     for (var y = 0; y < height; y += 1) {
@@ -1819,23 +1860,9 @@ var qrcode = function() {
     base64.flush();
 
     var img = '';
-    img += '<img';
-    img += '\u0020src="';
-    img += 'data:image/gif;base64,';
+
+    img += 'data:image/png;base64,';
     img += base64;
-    img += '"';
-    img += '\u0020width="';
-    img += width;
-    img += '"';
-    img += '\u0020height="';
-    img += height;
-    img += '"';
-    if (alt) {
-      img += '\u0020alt="';
-      img += alt;
-      img += '"';
-    }
-    img += '/>';
 
     return img;
   };
@@ -1846,12 +1873,4 @@ var qrcode = function() {
   return qrcode;
 }();
 
-(function (factory) {
-  if (typeof define === 'function' && define.amd) {
-      define([], factory);
-  } else if (typeof exports === 'object') {
-      module.exports = factory();
-  }
-}(function () {
-    return qrcode;
-}));
+module.exports = qrcode;
