@@ -33,7 +33,7 @@ With this you could get base64 code for qrcode image.
 Method above shoud be called Successively.
 
 ##Code demo
-```
+```javascript
 const qrcode = require('qrcode-generator');
 				,targteMessage = 'Give me five';
 				,qrMaker = qrcode( 4, 'M', true)//				 
