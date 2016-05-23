@@ -1873,4 +1873,4 @@ var qrcode = function( utf8Support ) {
   return qrcode;
 }();
 
-module.exports = qrcode;
+export default qrcode;
